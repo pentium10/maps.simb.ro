@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html> 
+    <head> 
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8" /> 
+        <title>A térképen mindenki bejelölheti, hogy leadta a kérelmet a piacigazgatóság felé</title> 
+        <meta name="description" content="mintegy jelezve, hogy hányan vagyunk már. Kérem, ismertesse meg annyi emberrel ezt az akciót, amennyivel csak tudja! Minél több ember aláírja, annál jobban odafigyel rá a média és a piacigazgatóság.">
+        <meta property="og:image" content="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQq6kk7ibI6v78sYnaDlyUFrWcRpTG8BZ-g25gAyeKCrxfIw5VO">
+        <style>
+            html, body, #map-canvas {
+                height: 100%;
+                margin: 0px;
+                padding: 0px
+            }
+            #panel {
+                position: absolute;
+                top: 5px;
+                left: 40%;
+                margin-left: -180px;
+                z-index: 5;
+                background-color: #fff;
+                padding: 5px;
+                border: 1px solid #999;
+                width:800px;
+            }
+            #bottom {
+				display:none;
+                position: absolute;
+                bottom: 1px;
+                left: 40%;
+                margin-left: -180px;
+                z-index: 5;
+                background-color: #fff;
+                padding: 3px;
+                border: 1px solid #999;
+                width:800px;
+                text-align: center;
+            }
+            #panel2,#panel3,#panel4,#panel5,#error,#bottom2 {
+                display:none;
+            }
+            #bottom1{
+                display: inline-block;margin-left: auto;margin-right: auto;width:790px;
+            }
+            #tips, #tips li{
+                list-style:none;
+                float:right;
+            }
+            #tips li{
+                display:none; /* hide the items at first only to display one with javascript */
+            }
+            #main-controller {
+                overflow: hidden;
+                width: 200px;    
+                float:left;
+            }
+            #left-controller {
+                float: left;
+                overflow: hidden;
+                width: 500px;
+                text-align:center;
+                margin-top:5px;
+            }
+            .center{margin:auto; width: 780px}
+            /*            #panel5 {
+                            display:block;
+                        }*/
+        </style>
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+
+        <!-- Optional theme -->
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap-theme.min.css">
+        <link rel="stylesheet" href="bootstrap/datepicker.css">
+        <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&key=AIzaSyCmWfNE1TDPuLqNdHCt48n5Vpo19QfTSAQ"></script>
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+        <script src="bootstrap/datepicker.js"></script>
+        <script src="markerclusterer.js"></script>
+        <script>
+            var locations = [
+                        ['Bartha Eva', 46.5427, 24.5573, '2013-11-10',32],
+                                ['Spir József', 46.2833, 21.4, '2013-11-10',31],
+                                ['sebestyen adorjan dezso', 46.5276, 24.5543, '2013-11-10',30],
+                                ['Lakó Péterfi Tünde', 46.5546, 24.5571, '2013-11-07',26],
+                                ['Nem nyilvános', 46.5542, 24.5756, '2013-11-10',33],
+                                ['Soó Kálmán', 46.5308, 24.5597, '2013-11-10',34],
+                                ['Orbán Szabolcs', 46.7227, 25.592, '2013-11-10',35],
+                                ['Nem nyilvános', 46.5385, 24.5644, '2013-11-08',36],
+                                ['Kiss Csaba László', 46.5433, 24.5477, '2013-11-10',37],
+                                ['Kovács Melinda', 46.5423, 24.5448, '2013-11-08',38],
+                                ['Nem nyilvános', 46.5331, 24.557, '2013-11-11',39],
+                                ['Nem nyilvános', 46.5357, 24.588, '2013-11-08',40],
+                                ['Nem nyilvános', 46.5092, 24.4544, '2013-11-11',41],
+                                ['Árpád Dénes', 46.5282, 24.5549, '2013-11-11',42],
+                                ['Koffol Alfréd', 46.5576, 24.5737, '2013-11-12',43],
+                                ['Osváth Attila, SZNT küldött', 46.5401, 24.553, '2013-11-12',44],
+                                ['Forgács Viola', 46.5547, 24.5591, '2013-11-12',45],
+                                ['Nem nyilvános', 46.5393, 24.5624, '2013-11-12',46],
+                                ['Tosa Nicolae', 46.3596, 25.7934, '2013-11-12',47],
+                                ['Nem nyilvános', 46.5512, 24.5706, '2013-11-13',48],
+                                ['Nem nyilvános', 46.5511, 24.5701, '2013-11-13',49],
+                                ['Nem nyilvános', 46.5389, 24.5826, '2013-11-13',50],
+                                ['Nem nyilvános', 46.5399, 24.5529, '2013-11-13',51],
+                                ['Kiss János és Imola', 46.659, 24.6139, '2013-11-13',52],
+                                ['Nem nyilvános', 46.5333, 24.5523, '2013-11-13',53],
+                                ['Nem nyilvános', 46.5394, 24.5495, '2013-11-13',54],
+                                ['Nem nyilvános', 46.5394, 24.5496, '2013-11-13',55],
+                                ['Kovács László Csaba', 46.5393, 24.5493, '2013-11-13',56],
+                                ['Nem nyilvános', 46.5378, 24.5533, '2013-11-14',57],
+                                ['Nem nyilvános', 46.55, 24.4667, '2013-11-14',58],
+                                ['Nem nyilvános', 46.5344, 24.5791, '2013-11-14',59],
+                                ['Nem nyilvános', 46.5207, 24.5352, '2013-11-14',60],
+                                ['Szász Tamás', 46.5419, 24.5603, '2013-11-14',61],
+                                ['Nem nyilvános', 46.5431, 24.5509, '2013-11-14',62],
+                                ['Nem nyilvános', 46.5426, 24.5572, '2013-11-14',63],
+                                ['Nem nyilvános', 46.536, 24.5927, '2013-11-14',64],
+                                ['major hunor', 46.5348, 24.5689, '2013-11-14',65],
+                                ['belea margit', 46.5498, 24.5591, '2013-11-15',66],
+                                ['Nagy Imre József', 46.8514, 16.8458, '2013-11-15',67],
+                                ['Magyari Irén', 46.5419, 24.5467, '2013-11-13',68],
+                                ['Incze Albert es Incze Lenke', 46.5337, 24.5646, '2013-11-13',69],
+                                ['Klein József', 46.5455, 24.5593, '2013-11-13',70],
+                                ['Orosz Kinga', 46.5823, 24.6007, '2013-11-14',71],
+                                ['Orosz György Péter', 46.5824, 24.6007, '2013-11-14',72],
+                                ['Nem nyilvános', 46.5609, 24.5491, '2013-11-15',73],
+                                ['Nem nyilvános', 46.5436, 24.5518, '2013-11-14',74],
+                                ['Nem nyilvános', 46.5405, 24.5701, '2013-11-14',75],
+                                ['Nagy Istvan', 46.557, 24.574, '2013-11-15',76],
+                                ['Simó család', 46.5301, 24.554, '2013-11-13',77],
+                                ['Nem nyilvános', 46.5289, 24.5447, '2013-11-15',78],
+                                ['Nem nyilvános', 46.5399, 24.5806, '2013-11-13',79],
+                                ['Nem nyilvános', 46.554, 24.5715, '2013-11-15',80],
+                                ['Nem nyilvános', 46.5351, 24.5485, '2013-11-15',81],
+                                ['Nem nyilvános', 46.5409, 24.5652, '2013-11-16',82],
+                                ['Fazakas János', 46.5544, 24.5566, '2013-11-15',83],
+                                ['Nem nyilvános', 46.5427, 24.5585, '2013-11-16',84],
+                                ['bencze erika', 46.5235, 24.5517, '2013-11-15',85],
+                                ['Revesz Katalin', 46.5404, 24.5514, '2013-11-17',86],
+                                ['Nem nyilvános', 46.5388, 24.5825, '2013-11-13',87],
+                                ['Kálmán levente', 46.5339, 24.5669, '2013-11-15',88],
+                    ];
+
+            var geocoder;
+            var map;
+            var bounds;
+            var draggablemarker;
+            var draggablemarkerlistener;
+            var markersArray = [];
+            var markerClusterer = null;
+
+            var leaveFunc = function() {
+                return 'A mentést nem fejezte be teljesen végig, biztos abban hogy akar távozni az oldalról?';
+            }
+            function initialize() {
+                geocoder = new google.maps.Geocoder();
+                bounds = new google.maps.LatLngBounds();
+                var latlng = new google.maps.LatLng(46.5426953, 24.557301);
+                var mapOptions = {
+                    zoom: 13,
+                    center: latlng,
+                    mapTypeId: google.maps.MapTypeId.ROADMAP
+                }
+                map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+
+                var infowindow = new google.maps.InfoWindow();
+
+                var marker, i;
+
+                for (i = 0; i < locations.length; i++) {
+                    marker = new google.maps.Marker({
+                        position: new google.maps.LatLng(locations[i][1], locations[i][2]),
+//                        map: map
+                    });
+
+                    markersArray.push(marker);
+                    bounds.extend(marker.position);
+
+                    google.maps.event.addListener(marker, 'click', (function(marker, i) {
+                        return function() {
+                            infowindow.setContent(getContent(locations[i]));
+                            infowindow.open(map, marker);
+                        }
+                    })(marker, i));
+                }
+
+                markerClusterer = new MarkerClusterer(map, markersArray, {
+                    maxZoom: 11,
+                    gridSize: 30,
+                });
+                //map.fitBounds(bounds);
+                var listener = google.maps.event.addListener(map, "idle", function() {
+                    if (map.getZoom() > 14)
+                        map.setZoom(14);
+                    google.maps.event.removeListener(listener);
+                });
+            }
+
+            function getContent(location) {
+                return "<b>Név:</b> " + location[0] + "<br/><b>Beadás dátuma:</b> " + location[3];
+            }
+
+            google.maps.Map.prototype.clearOverlays = function() {
+                markerClusterer.clearMarkers();
+//                for (var i = 0; i < markersArray.length; i++) {
+//                    markersArray[i].setMap(null);
+//                }
+            }
+
+            function codeAddress() {
+                var address = document.getElementById('address').value;
+                geocoder.geocode({'address': address}, function(results, status) {
+                    if (status == google.maps.GeocoderStatus.OK) {
+                        map.clearOverlays();
+                        map.setCenter(results[0].geometry.location);
+                        map.setZoom(17);
+                        if (draggablemarker) {
+                            draggablemarker.setMap(null);
+                        }
+                        var image = 'http://www.google.com/mapfiles/arrow.png';
+                        draggablemarker = new google.maps.Marker({
+                            map: map,
+                            position: results[0].geometry.location,
+                            draggable: true,
+                            animation: google.maps.Animation.DROP,
+                            icon: image
+                        });
+                        updatePosition(results[0].geometry.location);
+                        //bounds.extend(marker.position);
+                        //map.fitBounds(bounds);
+                        if (draggablemarkerlistener) {
+                            google.maps.event.removeListener(draggablemarkerlistener);
+                        }
+                        draggablemarkerlistener = google.maps.event.addListener(draggablemarker, 'dragend', function()
+                        {
+                            updatePosition(draggablemarker.getPosition());
+                        });
+                        $('#panel3').hide();
+                        $('#panel4').show();
+                        ga('send', 'event', 'wizard', 'step4', $('#form1').serialize(), {'page': '/step4', 'nonInteraction': 1});
+                    } else {
+                        alert('A geokódólás sikertelen volt: ' + status);
+                        ga('send', 'event', 'error', 'step4', status);
+                    }
+                });
+            }
+
+            google.maps.event.addDomListener(window, 'load', initialize);
+
+            function updatePosition(pos) {
+                $('#lat').val(pos.lat());
+                $('#lon').val(pos.lng());
+            }
+
+            function bottom2() {
+                $('#bottom1').hide();
+                $('#bottom2').show();
+                ga('send', 'event', 'wizard', 'bottom2', {'page': '/bottom2', 'nonInteraction': 1});
+            }
+
+            function step2() {
+                $('#panel1,#panel2,#panel3,#panel4,#panel5').hide();
+                $('#panel2').show();
+                ga('send', 'event', 'wizard', 'step2', $('#form1').serialize(), {'page': '/step2', 'nonInteraction': 1});
+            }
+            function step3() {
+                $('#panel1,#panel2,#panel3,#panel4,#panel5').hide();
+                $('#panel3').show();
+                ga('send', 'event', 'wizard', 'step3', $('#form1').serialize(), {'page': '/step3', 'nonInteraction': 1});
+                $(window).off('beforeunload', leaveFunc);
+                $(window).on('beforeunload', leaveFunc);
+            }
+
+            function step5() {
+                $('#panel1,#panel2,#panel3,#panel4,#panel5').hide();
+                $('#panel5').show();
+                ga('send', 'event', 'wizard', 'step5', $('#form1').serialize(), {'page': '/step5', 'nonInteraction': 1});
+                _cbq.push(['register',{'userId':$('#email').val(), 'plan':$('#hidden').val(), 'custom':$('#form1').serializeArray()}]);
+                $(window).off('beforeunload', leaveFunc);
+            }
+
+            function save() {
+                if ($('#date').val().length < 3) {
+                    showError('Kérjük töltse ki a a beadás dátum mezőt.');
+                    return false;
+                }
+                if ($('#name').val().length < 3 && $('#hidden').val() !== "1") {
+                    showError('Kérjük töltse ki a név mezőt');
+                    return false;
+                }
+                if ($('#email').val().length < 3) {
+                    showError('Email mező üres, ezt kötelező megadni, a mentés nem történt meg.');
+                    return false;
+                }
+                if ($('#lat').val().length < 3 || $('#lon').val().length < 3) {
+                    showError('Nem találtam koordinátákat a térképen, próbálja elölről.');
+                    return false;
+                }
+                var request = $.ajax({
+                    url: "save.php",
+                    type: "POST",
+                    data: $('#form1').serialize(),
+                    dataType: "html"
+                });
+
+                request.done(function(msg) {
+                    if (msg.length < 1) {
+                        step5();
+                    }
+                });
+
+                request.fail(function(jqXHR, textStatus) {
+                    alert("Hiba lépett fel: " + textStatus);
+                    ga('send', 'event', 'error', 'step4', textStatus);
+                    ga('send', 'exception', {
+                        'exDescription': textStatus
+                    });
+                });
+            }
+
+            function showError(msg) {
+                $('#error').find('span').text(msg);
+                $('#error').show();
+                ga('send', 'event', 'error', 'validation', msg);
+                ga('send', 'exception', {
+                    'exDescription': msg
+                });
+            }
+
+            $(document).on('click', '.alert-dismissable', function()
+            {
+                $(this).hide();
+                step2();
+            });
+        </script>
+    </head> 
+    <body>
+        <script>
+            (function(i, s, o, g, r, a, m) {
+                i['GoogleAnalyticsObject'] = r;
+                i[r] = i[r] || function() {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+                a = s.createElement(o),
+                        m = s.getElementsByTagName(o)[0];
+                a.async = 1;
+                a.src = g;
+                m.parentNode.insertBefore(a, m)
+            })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+            ga('create', 'UA-36212037-2', 'simb.ro');
+            ga('send', 'pageview');
+
+
+            var _cbq = _cbq || [];
+            _cbq.push(['_setApiKey', 'E5UiiqIkgdoDquX8pxq8b-qcWURuKw2Whyk6yF7Rm8I']);
+
+            (function() {
+                var cb = document.createElement('script');
+                cb.type = 'text/javascript';
+                cb.async = true;
+                cb.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'api.churnbee.com/cb.js';
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(cb, s);
+            })();
+
+        </script>
+        <div id="fb-root"></div>
+        <script>(function(d, s, id) {
+                var js, fjs = d.getElementsByTagName(s)[0];
+                if (d.getElementById(id))
+                    return;
+                js = d.createElement(s);
+                js.id = id;
+                js.src = "//connect.facebook.net/hu_HU/all.js#xfbml=1&appId=1436747489878861";
+                fjs.parentNode.insertBefore(js, fjs);
+            }(document, 'script', 'facebook-jssdk'));</script>
+        <div id="panel" class="container">
+            <form name="form1" method="post" id="form1" action="">
+                <input type="hidden" name="lat" id="lat"/>
+                <input type="hidden" name="lon" id="lon"/>
+                <div class="pull-right">
+                    <button type="button" class="close" aria-hidden="true" onclick="$('#panel').hide();">×</button>
+                </div>
+                <div id="panel1">
+                                            <p >
+                            <br/>
+                            2013 október 4-én kérvényeztük a marosvásárhelyi piacigazgatóságtól, hogy engedélyezze, hogy román és magyar feliratú árcímkéket ajándékozhassunk az árusoknak a piacokon. 
+                            Erre a kérelemre egy kerülő választ kaptunk, amiben leírják, hogy ez nem a mi dolgunk, a konkrét kérést nem méltatták válaszra. 
+
+                            Egy akciót hirdettünk meg, melyben felkérjük a lakosságot, hogy a következő linken található <a href="https://docs.google.com/document/d/15-7Hqi8ndOfILXflRB1xtpPZV21O5gjYt1zm5hxX0UQ/edit" target="_blank">nyomtatványt</a> töltsék ki, és adják le a Cuza Vodai piacigazgatóságon. 
+                            <br/>
+                            <br/>
+                            Ezen a térképen mindenki bejelölheti, hogy leadta a kérelmet, mintegy jelezve, hogy hányan vagyunk már. A következő lépésben adják meg az utcát, és jelöljék meg. Köszönjük a segítséget! Itthon vagyunk csoport.
+                        </p>
+                        <div class="row">
+                            <div class="row">
+                                <div class="col-md-4" style='padding-left: 40px;padding-top:15px;'>
+                                    <div class="fb-like" data-href="http://maps.simb.ro/vanegypercem/" data-layout="button_count" data-action="like" data-show-faces="false" data-share="true"></div>
+                                </div>              
+                                <div class="col-md-4">              
+                                    <!--<input type="button" value="Új pont megjelőlése" class="btn btn-lg btn-info" onclick="step2()"/>-->
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="row">
+                                        <div class="col-md-2"></div>              
+                                        <div class="col-md-8 pull-right" style="text-align:right;padding-right: 40px;padding-top:15px;">Bejegyzések: 60</div>              
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                                    </div>
+                <div id="panel2">
+                    <div class="form-horizontal">
+                        <div class="form-group">
+                            <label for="inputEmail3" class="col-sm-3 control-label">Beadás dátuma </label>
+                            <div class="col-sm-5">
+                                <input type="text" class="form-control datepicker" id="date" name="date" data-date-format="yyyy-mm-dd" placeholder2="2013-12-08">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="inputPassword3" class="col-sm-3 control-label">Név</label>
+                            <div class="col-sm-5">
+                                <input type="text" class="form-control" id="name" name="name" placeholder="">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-offset-3 col-sm-10">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" name="hidden" id="hidden" value="1">A név ne legyen látható publikusan
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"></div>              
+                            <div class="col-md-4">              
+                                <input type="button" value="Tovább" class="btn btn-lg btn-info pull-right" onclick="step3()"/>
+                            </div>
+                            <div class="col-md-4"></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="panel3">
+                    <!--<button type="button" class="close pull-left btn-xs">
+<span class="glyphicon glyphicon-arrow-left"></span>
+</button>-->
+                    <div class="form-horizontal">
+                        <div class="form-group">
+                            <label for="inputEmail3" class="col-sm-12">Írja be a címét, előnézet után, a térképre rajzolt zöld jelzőt, mozgatással helyezze az utcájára</label>
+                            <div class="col-sm-11">
+                                <input type="text" class="form-control" id="address" name="address" value="romania, marosvasarhely, primariei">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"></div>              
+                            <div class="col-md-5">              
+                                <div class="row">
+                                    <div class="col-md-9">
+                                        <input type="button" name="button" id="button" class="btn btn-lg btn-info" value="Geokódólási előnézet" onclick="codeAddress()"> 
+                                    </div>              
+                                    <div class="col-md-3 pull-left">
+                                        <br/>
+                                        <a href="http://www.geox.hu/gis-szolgaltatasok/geokodolas" target="_blank">Mi ez?</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                            </div>
+                        </div>
+
+
+                        <input type="button" value="Mentes" class="btn btn-lg btn-success" onclick="step3()" style="display:none"/>
+                    </div>
+                </div>
+
+                <div id="panel4">
+                    <p>A térképre rajzolt zöld jelzőt, mozgatással helyezze az utcájára (a térképet lehet nagyítani, kicsinyíteni, mozgatni), majd a <b>Mentés</b> gombot lenyomva rendszerünk elmenti. 
+                        <br/><br/>
+                        Ezután küldünk egy emailt, ami akár a Spam-be is érkezhet, a benne levő <b>linkre kattintva</b> megerősítheti bejegyzését. Az e-mail címét sohasem jelentetjük meg publikusan, és nem továbbítjuk harmadik félnek.
+                        </br></br>
+                        Köszönjük a segítséget!</p>
+                    <div class="form-horizontal">
+                        <div class="form-group">
+                            <label for="inputPassword3" class="col-sm-3 control-label">Email</label>
+                            <div class="col-sm-5">
+                                <input type="email" class="form-control" id="email" name="email" placeholder="">
+                            </div>
+                        </div>
+                        <div class="alert alert-warning alert-dismissable" id="error">
+                            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                            <button type="button" class="btn btn-xs btn-warning" onclick="step2();">Vissza</button>
+                            <span></span>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"></div>              
+                            <div class="col-md-4">              
+                                <input type="button" value="Mentés" class="btn btn-lg btn-warning" onclick="save()"/>
+                            </div>
+                            <div class="col-md-4"></div>
+                        </div>
+                    </div>
+
+                </div>
+                <div id="panel5">
+                    <p> Köszönjük, hogy aláírta ezt a petíciót! Kérem, ismertesse meg annyi emberrel ezt a petíciót, amennyivel csak tudja! Minél több ember aláírja, annál jobban odafigyel rá a média és a piacigazgatóság.
+                    </p>
+                    <div class="row">
+                        <div class="row">
+                            <div class="col-md-4" style='padding-left: 40px;padding-top:15px;'>
+                                <div class="fb-like" data-href="http://maps.simb.ro/vanegypercem/" data-layout="button_count" data-action="like" data-show-faces="false" data-share="true"></div>
+                            </div>              
+                            <div class="col-md-4">              
+                                <input type="button" value="Főoldalra" class="btn btn-lg btn-info" onclick="location.reload(true)"/>
+                            </div>
+                            <div class="col-md-4">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+        <!-- Begin MailChimp Signup Form -->
+        <link href="//cdn-images.mailchimp.com/embedcode/classic-081711.css" rel="stylesheet" type="text/css">
+        <style type="text/css">
+            #mc_embed_signup{background:#fff; clear:left; font:14px Helvetica,Arial,sans-serif; }
+            /* Add your own MailChimp form style overrides in your site stylesheet or in this style block.
+               We recommend moving this block and the preceding CSS link to the HEAD of your HTML file. */
+        </style>
+                    <div id="bottom" class="container">
+                <div id="bottom1">
+                    <div class="center">
+                        <div class="pull-right">
+                            <button type="button" class="close" aria-hidden="true" onclick="$('#bottom').hide();">×</button>
+                        </div>
+
+                        <div id="left-controller">
+                            <span id="tips">
+                                <li>Szeretne értesülni emailben, a rendkivüli számadatokról, statisztikákról?</li>
+                                <li>Szeretne értesülni emailben, mikor érjük el a 100-dik feliratkozót?</li>
+                                <li>Szeretne értesülni emailben, a térképes adatok rendkivüli változásáról?</li>
+                            </span>
+                        </div>
+                        <div id="main-controller">
+                            <div style="float:right !important;">    
+                                <input type="button" value="Feliratkozom az értesítőre" class="btn btn-md btn-primary" onclick="bottom2()"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="bottom2">
+                    <div id="mc_embed_signup">
+                        <div class="pull-right">
+                            <button type="button" class="close" aria-hidden="true" onclick="$('#bottom').hide();">×</button>
+                        </div>
+                        <form action="http://twitter.us2.list-manage.com/subscribe/post?u=b09bb2fe0d5f42727ae65d96d&amp;id=c06397e2e0" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" style="position:inherit !important;" target="_blank" novalidate>
+                            <h4>Szeretnék értesítést kapni a térképes szolgáltatástól</h4>
+                            <h5>(kizárólag rendkivüli üzeneteket küldünk, pl. a 100-dik bejegyzésről, vagy demográfiai statisztikát, sajtószemlét)</h5>
+                            <div class="mc-field-group">
+                                <label for="mce-EMAIL">Email </label>
+                                <input type="email" value="" name="EMAIL" class="required email" id="mce-EMAIL">
+                            </div>
+                            <div id="mce-responses" class="clear">
+                                <div class="response" id="mce-error-response" style="display:none"></div>
+                                <div class="response" id="mce-success-response" style="display:none"></div>
+                            </div>	<div class="clear"><input type="submit" value="Feliratkozás" name="subscribe" id="mc-embedded-subscribe" class="button"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <script type="text/javascript">
+            var fnames = new Array();
+            var ftypes = new Array();
+            fnames[0] = 'EMAIL';
+            ftypes[0] = 'email';
+            try {
+                var jqueryLoaded = jQuery;
+                jqueryLoaded = true;
+            } catch (err) {
+                var jqueryLoaded = false;
+            }
+            var head = document.getElementsByTagName('head')[0];
+            if (!jqueryLoaded) {
+                var script = document.createElement('script');
+                script.type = 'text/javascript';
+                script.src = '//ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js';
+                head.appendChild(script);
+                if (script.readyState && script.onload !== null) {
+                    script.onreadystatechange = function() {
+                        if (this.readyState == 'complete')
+                            mce_preload_check();
+                    }
+                }
+            }
+
+            var err_style = '';
+            try {
+                err_style = mc_custom_error_style;
+            } catch (e) {
+                err_style = '#mc_embed_signup input.mce_inline_error{border-color:#6B0505;} #mc_embed_signup div.mce_inline_error{margin: 0 0 1em 0; padding: 5px 10px; background-color:#6B0505; font-weight: bold; z-index: 1; color:#fff;}';
+            }
+            var head = document.getElementsByTagName('head')[0];
+            var style = document.createElement('style');
+            style.type = 'text/css';
+            if (style.styleSheet) {
+                style.styleSheet.cssText = err_style;
+            } else {
+                style.appendChild(document.createTextNode(err_style));
+            }
+            head.appendChild(style);
+            setTimeout('mce_preload_check();', 250);
+
+            var mce_preload_checks = 0;
+            function mce_preload_check() {
+                if (mce_preload_checks > 40)
+                    return;
+                mce_preload_checks++;
+                try {
+                    var jqueryLoaded = jQuery;
+                } catch (err) {
+                    setTimeout('mce_preload_check();', 250);
+                    return;
+                }
+                var script = document.createElement('script');
+                script.type = 'text/javascript';
+                script.src = 'http://downloads.mailchimp.com/js/jquery.form-n-validate.js';
+                head.appendChild(script);
+                try {
+                    var validatorLoaded = jQuery("#fake-form").validate({});
+                } catch (err) {
+                    setTimeout('mce_preload_check();', 250);
+                    return;
+                }
+                mce_init_form();
+            }
+            function mce_init_form() {
+                jQuery(document).ready(function($) {
+                    var options = {errorClass: 'mce_inline_error', errorElement: 'div', onkeyup: function() {
+                        }, onfocusout: function() {
+                        }, onblur: function() {
+                        }};
+                    var mce_validator = $("#mc-embedded-subscribe-form").validate(options);
+                    $("#mc-embedded-subscribe-form").unbind('submit');//remove the validator so we can get into beforeSubmit on the ajaxform, which then calls the validator
+                    options = {url: 'http://twitter.us2.list-manage.com/subscribe/post-json?u=b09bb2fe0d5f42727ae65d96d&id=c06397e2e0&c=?', type: 'GET', dataType: 'json', contentType: "application/json; charset=utf-8",
+                        beforeSubmit: function() {
+                            $('#mce_tmp_error_msg').remove();
+                            $('.datefield', '#mc_embed_signup').each(
+                                    function() {
+                                        var txt = 'filled';
+                                        var fields = new Array();
+                                        var i = 0;
+                                        $(':text', this).each(
+                                                function() {
+                                                    fields[i] = this;
+                                                    i++;
+                                                });
+                                        $(':hidden', this).each(
+                                                function() {
+                                                    var bday = false;
+                                                    if (fields.length == 2) {
+                                                        bday = true;
+                                                        fields[2] = {'value': 1970};//trick birthdays into having years
+                                                    }
+                                                    if (fields[0].value == 'MM' && fields[1].value == 'DD' && (fields[2].value == 'YYYY' || (bday && fields[2].value == 1970))) {
+                                                        this.value = '';
+                                                    } else if (fields[0].value == '' && fields[1].value == '' && (fields[2].value == '' || (bday && fields[2].value == 1970))) {
+                                                        this.value = '';
+                                                    } else {
+                                                        if (/\[day\]/.test(fields[0].name)) {
+                                                            this.value = fields[1].value + '/' + fields[0].value + '/' + fields[2].value;
+                                                        } else {
+                                                            this.value = fields[0].value + '/' + fields[1].value + '/' + fields[2].value;
+                                                        }
+                                                    }
+                                                });
+                                    });
+                            $('.phonefield-us', '#mc_embed_signup').each(
+                                    function() {
+                                        var fields = new Array();
+                                        var i = 0;
+                                        $(':text', this).each(
+                                                function() {
+                                                    fields[i] = this;
+                                                    i++;
+                                                });
+                                        $(':hidden', this).each(
+                                                function() {
+                                                    if (fields[0].value.length != 3 || fields[1].value.length != 3 || fields[2].value.length != 4) {
+                                                        this.value = '';
+                                                    } else {
+                                                        this.value = 'filled';
+                                                    }
+                                                });
+                                    });
+                            return mce_validator.form();
+                        },
+                        success: mce_success_cb
+                    };
+                    $('#mc-embedded-subscribe-form').ajaxForm(options);
+                    /*
+                     * Translated default messages for the jQuery validation plugin.
+                     * Locale: HU
+                     */
+                    jQuery.extend(jQuery.validator.messages, {
+                        required: "K�telezo megadni.",
+                        maxlength: jQuery.validator.format("Legfeljebb {0} karakter hossz� legyen."),
+                        minlength: jQuery.validator.format("Legal�bb {0} karakter hossz� legyen."),
+                        rangelength: jQuery.validator.format("Legal�bb {0} �s legfeljebb {1} karakter hossz� legyen."),
+                        email: "�rv�nyes e-mail c�mnek kell lennie.",
+                        url: "�rv�nyes URL-nek kell lennie.",
+                        date: "D�tumnak kell lennie.",
+                        number: "Sz�mnak kell lennie.",
+                        digits: "Csak sz�mjegyek lehetnek.",
+                        equalTo: "Meg kell egyeznie a k�t �rt�knek.",
+                        range: jQuery.validator.format("{0} �s {1} k�z� kell esnie."),
+                        max: jQuery.validator.format("Nem lehet nagyobb, mint {0}."),
+                        min: jQuery.validator.format("Nem lehet kisebb, mint {0}."),
+                        creditcard: "�rv�nyes hitelk�rtyasz�mnak kell lennie."
+                    });
+
+
+                });
+            }
+            function mce_success_cb(resp) {
+                $('#mce-success-response').hide();
+                $('#mce-error-response').hide();
+                if (resp.result == "success") {
+                    $('#mce-' + resp.result + '-response').show();
+                    $('#mce-' + resp.result + '-response').html(resp.msg);
+                    $('#mc-embedded-subscribe-form').each(function() {
+                        this.reset();
+                    });
+                } else {
+                    var index = -1;
+                    var msg;
+                    try {
+                        var parts = resp.msg.split(' - ', 2);
+                        if (parts[1] == undefined) {
+                            msg = resp.msg;
+                        } else {
+                            i = parseInt(parts[0]);
+                            if (i.toString() == parts[0]) {
+                                index = parts[0];
+                                msg = parts[1];
+                            } else {
+                                index = -1;
+                                msg = resp.msg;
+                            }
+                        }
+                    } catch (e) {
+                        index = -1;
+                        msg = resp.msg;
+                    }
+                    try {
+                        if (index == -1) {
+                            $('#mce-' + resp.result + '-response').show();
+                            $('#mce-' + resp.result + '-response').html(msg);
+                        } else {
+                            err_id = 'mce_tmp_error_msg';
+                            html = '<div id="' + err_id + '" style="' + err_style + '"> ' + msg + '</div>';
+
+                            var input_id = '#mc_embed_signup';
+                            var f = $(input_id);
+                            if (ftypes[index] == 'address') {
+                                input_id = '#mce-' + fnames[index] + '-addr1';
+                                f = $(input_id).parent().parent().get(0);
+                            } else if (ftypes[index] == 'date') {
+                                input_id = '#mce-' + fnames[index] + '-month';
+                                f = $(input_id).parent().parent().get(0);
+                            } else {
+                                input_id = '#mce-' + fnames[index];
+                                f = $().parent(input_id).get(0);
+                            }
+                            if (f) {
+                                $(f).append(html);
+                                $(input_id).focus();
+                            } else {
+                                $('#mce-' + resp.result + '-response').show();
+                                $('#mce-' + resp.result + '-response').html(msg);
+                            }
+                        }
+                    } catch (e) {
+                        $('#mce-' + resp.result + '-response').show();
+                        $('#mce-' + resp.result + '-response').html(msg);
+                    }
+                }
+            }
+
+        </script>
+        <!--End mc_embed_signup-->                <div id="map-canvas"></div>
+        <script>
+            $(function() {
+                var checkout = $('#date').datepicker({
+                    weekStart: 1,
+                    format: 'yyyy-mm-dd'
+                }).on('changeDate', function(ev) {
+                    checkout.hide();
+                }).data('datepicker');
+            });
+            this.randomtip = function() {
+
+                var pause = 3000; // define the pause for each tip (in milliseconds) Feel free to make the pause longer so users can have time to read the tips :)
+                var length = $("#tips li").length;
+                var temp = -1;
+                var intervalid;
+                this.getRan = function() {
+                    // get the random number
+                    var ran = Math.floor(Math.random() * length) + 1;
+                    return ran;
+                };
+                this.show = function() {
+                    var ran = getRan();
+                    // to avoid repeating tips we need to check 
+                    while (ran == temp) {
+                        ran = getRan();
+                    }
+                    ;
+                    temp = ran;
+                    $("#tips li").hide();
+                    $("#tips li:nth-child(" + ran + ")").fadeIn("fast");
+                    if (!$("#bottom1").is(':visible')) {
+                        clearInterval(intervalid)
+                    }
+                };
+                // initiate the script and also set an interval
+
+                show();
+                intervalid = setInterval(show, pause);
+
+
+            };
+            $(document).ready(function() {
+                if ($("#tips li").length) {
+                    randomtip();
+                }
+            });
+        </script>
+    </body>
+</html>
